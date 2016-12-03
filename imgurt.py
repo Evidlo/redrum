@@ -28,7 +28,7 @@ max_pages = 5
 #                                               weight -->  ‚------
 #                       1                                  /
 #   f(x) = ----------------------------       ------------/-------------
-#          1 + e^(-k(score - midpoint))                  /
+#          1 + e^(-k(x - midpoint))                      /
 #                                                 ------‘ ∧    k = slope
 #                                                         |
 #                                                      midpoint
