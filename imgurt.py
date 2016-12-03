@@ -153,6 +153,9 @@ for image_score in image_scores:
 
 logging.info("Selected {0} with probability {1}".format(image['link'], image_score/sum(image_scores)))
 logging.info("Applying wallpaper")
-response = requests.get(image['link'], headers=headers)
+response = requests.get(image['link'])
 p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
 logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
+with open('/tmp/poop', 'w') as f:
+    f.write(str(response.content))
+
