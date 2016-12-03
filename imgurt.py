@@ -21,10 +21,18 @@ headers = {"Authorization":"Client-ID {0}".format(client_id)}
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 5
 
+# Use logistic function to give better differeniation between good and bad matches.
 # preset weights for scoring algorithm
 #   see https://en.wikipedia.org/wiki/Logistic_function
-
-ratio_k = 10 
+#
+#                                               weight -->  ‚------
+#                       1                                  /
+#   f(x) = ----------------------------       ------------/-------------
+#          1 + e^(-k(score - midpoint))                  /
+#                                                 ------‘ ∧    k = slope
+#                                                         |
+#                                                      midpoint
+ratio_k = 10
 views_k = 5
 pixel_k = 5
 
@@ -70,13 +78,7 @@ def scores(images):
         if pixel_score > 1:
             pixel_score = 1
 
-        # Calculate final image score from preset weights.
-        # Use logistic function to give better differeniation between good and bad matches.
-        #
-        #                       1
-        #   f(x) = ----------------------------
-        #          1 + e^(-k(score - midpoint))
-        #
+        # Calculate final image score from presets.
 
         scores.append(  1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_midpoint)))
                         * ratio_weight
@@ -151,6 +153,6 @@ for image_score in image_scores:
 
 logging.info("Selected {0} with probability {1}".format(image['link'], image_score/sum(image_scores)))
 logging.info("Applying wallpaper")
-response = requests.get(image['link'], headers=headers, stream=True)
+response = requests.get(image['link'], headers=headers)
 p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
 logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
