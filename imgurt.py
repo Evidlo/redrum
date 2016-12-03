@@ -27,9 +27,9 @@ max_pages = 5
 #
 #                                               weight -->  ‚------
 #                       1                                  /
-#   f(x) = ----------------------------       ------------/-------------
+#   f(x) = ----------------------------                   /  <-- k (steepness)
 #          1 + e^(-k(x - midpoint))                      /
-#                                                 ------‘ ∧    k = slope
+#                                       0 -  -  - ------‘ ∧ -  -  -  -  -  -
 #                                                         |
 #                                                      midpoint
 ratio_k = 10
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 # return a list of scores given a list of images
-# lower score is better
+# higher score is better
 def scores(images):
     scores = []
     max_views = max([image['views'] for image in images])
