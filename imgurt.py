@@ -2,53 +2,74 @@
 ## Evan Widloski - 2016-12-03
 ## Imgurt - Imgur wallpaper ranker and changer
 ## Uses logistic function to choose wallpaper based
-##   on views resolution,  pect ratio
+##   on number of views, resolution and aspect ratio
+
 import requests
 import logging
 import random
 import math
+import sys
 from subprocess import Popen, PIPE
+import json
+from datetime import datetime, timedelta
 
 screen_width = 1600
 screen_height = 900
 
 subreddits = ["winterporn", "earthporn"]
-url = "https://api.imgur.com/3/gallery/r/{0}/top/year/{1}"
-album_url = "https://api.imgur.com/3/album/{0}"
 
-# imgur api id
-client_id = "5f21952153b5f6c"
-headers = {"Authorization":"Client-ID {0}".format(client_id)}
-# maximum number of pages of images to load for 1 subreddit
-max_pages = 5
-
-# Use logistic function to give better discrimination between good and bad matches.
+# Use logistic function to give nonlinear discrimination between good and bad matches.
 #   see https://en.wikipedia.org/wiki/Logistic_function
 #
 #                                               weight -->  ‚------
 #                       1                                  /
 #   f(x) = ----------------------------                   /  <-- k (steepness)
-#          1 + e^(-k(x - midpoint))                      /
+#            1 + e^(-k(x - cutoff))                      /
 #                                       0 -  -  - ------‘ ∧ -  -  -  -  -  -
 #                                                         |
-#                                                      midpoint
+#                                                      cutoff
+
+# cutoff - set this about halfway between what you would consider a good and bad value
+# eg. if an image having 60% of the pixels of the screen is unacceptable
+#     but 90% is acceptable, set pixel_cutoff to .75
+# note: must be in range 0-1
+ratio_cutoff = .95  # keep this high to avoid cutting off edges of image
+views_cutoff = .75  # image views percentile
+pixel_cutoff = .75  # image pixels / screen pixels
+
+# discrimination factor
 ratio_k = 10
 views_k = 5
 pixel_k = 5
 
-ratio_midpoint = .95
-views_midpoint = .75
-pixel_midpoint = .75
-
+# importance of parameter when selecting an image
+# note: these are automatically normalized, so their magnitude doesn't matter
 ratio_weight = 3
 views_weight = 1
 pixel_weight = 3
+
+# maximum number of pages of images to load for 1 subreddit
+max_pages = 5
+url = "https://api.imgur.com/3/gallery/r/{0}/top/year/{1}"
+album_url = "https://api.imgur.com/3/album/{0}"
+# imgur api id
+client_id = "5f21952153b5f6c"
+headers = {"Authorization":"Client-ID {0}".format(client_id)}
+
+# store images and scores
+cache_file = '/tmp/imgurt_cache'
+# set cache to expire after 1 week
+cache_expiry = timedelta(days=7)
+# use ctime format for storing cache date
+date_format = "%a %b %d %H:%M:%S %Y"
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 # hide annoying requests messages
 logging.getLogger("requests").setLevel(logging.WARNING)
+
+
 # return a list of scores given a list of images
 # higher score is better
 def scores(images):
@@ -58,7 +79,6 @@ def scores(images):
     screen_ratio = float(screen_width)/screen_height
 
     for image in images:
-
         # score image ratio match from 0-1
         # calculates quotient of ratio.  the closer to 1, the better the match
         image_ratio = float(image['width']) / image['height']
@@ -78,80 +98,123 @@ def scores(images):
             pixel_score = 1
 
         # Calculate final image score from presets.
-
-        scores.append(  1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_midpoint)))
+        scores.append(  1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
                         * ratio_weight
-                      + 1/(1 + pow(math.e, -views_k * (views_score - views_midpoint)))
+                      + 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
                         * views_weight
-                      + 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_midpoint)))
+                      + 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
                         * pixel_weight)
 
     return scores
 
-# --- Get list of images and albums ---
 
-# list containing mix of images and albums
-results = []
-# get results for each subreddit
-for subreddit in subreddits:
-    # keep getting results on each subreddit album until there are none left
-    page_num = 0
-    while True:
-        page_url = url.format(subreddit, page_num)
-        logging.debug("Downloading page #{0} from subreddit {1}".format(page_num, subreddit))
-        response = requests.get(page_url, headers=headers)
-        page_results = response.json()['data']
-        page_num += 1
+def get_images(subreddits):
 
-        if len(page_results) == 0 or page_num > max_pages - 1:
-            break
-        else:
+    # get list of images and albums for each subreddit
+
+    # get results for each subreddit
+    results = []
+    for subreddit in subreddits:
+        # keep getting results on each subreddit album until there are none left
+        page_num = 0
+        while page_num < max_pages:
+            page_url = url.format(subreddit, page_num)
+            logging.debug("Downloading page #{0} from subreddit {1}".format(page_num, subreddit))
+            response = requests.get(page_url, headers=headers)
+            page_results = response.json()['data']
+            page_num += 1
+
+            if len(page_results) == 0:
+                break
+
             results += page_results
 
-    if page_num == 0:
-        logging.info("No results found for subreddit {0}.".format(subreddit))
+        if page_num == 0:
+            logging.info("No results found for subreddit {0}.".format(subreddit))
 
-# --- Cleanup list of images and albums ---
+    # clean list of images and albums
 
-# build list of images, replacing albums with images they contain
-images = []
-for result in results:
-    # if result is an album, append its images
-    if result['is_album']:
-        album_id = result['id']
-        logging.debug("Unpacking album {0}".format(album_id))
-        response = requests.get(album_url.format(album_id), headers=headers)
-        album_results = response.json()['data']
+    # build list of images, replacing albums with images they contain
+    images = []
+    for result in results:
+        # if result is an album, append its images to `images`
+        if result['is_album']:
+            album_id = result['id']
+            logging.debug("Unpacking album {0}".format(album_id))
+            response = requests.get(album_url.format(album_id), headers=headers)
+            album_results = response.json()['data']
 
-        for image in album_results['images']:
-            images.append(image)
+            for image in album_results['images']:
+                images.append(image)
 
-    # else, append image
-    else:
-        images.append(result)
+        # else, append image
+        else:
+            images.append(result)
 
-# remove zero pixel (deleted) images
-images = [image for image in images if (image['width'] > 0 and image['height'] > 0)]
+    # remove zero pixel (deleted) images
+    images = [image for image in images if (image['width'] > 0 and image['height'] > 0)]
 
-# --- Score images and select randomly by score ---
+    return images
 
-if len(images) > 0:
+
+# select a random image weighted by score
+def weighted_select(images, image_scores):
+    rand_score = random.uniform(0, sum(image_scores))
+    for image_score in image_scores:
+        rand_score -= image_score
+        if rand_score <= 0:
+            image = images[image_scores.index(image_score)]
+            break
+
+    logging.info("Selected {0} with score {1}".format(image['link'], image_score))
+    logging.info("The probability of selecting this image was {0}".format(image_score/sum(image_scores)))
+    return image
+
+
+# set wallpaper with feh
+def set_wallpaper(image):
+    logging.info("Applying wallpaper")
+
+    # download image and send to feh stdin
+
+    response = requests.get(image['link'])
+    p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
+
+# update image cache
+def update_cache():
+    images = get_images(subreddits)
     image_scores = scores(images)
-else:
-    logging.info("No results found")
+    date = datetime.strftime(datetime.now(), date_format)
+    f = open(cache_file, 'w')
+    f.write(json.dumps({'date': date, 'images': images, 'image_scores': image_scores}))
+    return [images, image_scores]
 
-#select a random image weighted by score
-rand_score = random.uniform(0, sum(image_scores))
-for image_score in image_scores:
-    rand_score -= image_score
-    if rand_score <= 0:
-        image = images[image_scores.index(image_score)]
-        break
 
-# --- Set wallpaper with feh ---
+if __name__ == "__main__":
+    # attempt to load scores from cache
+    try:
+        f = open(cache_file, 'r')
+        j = json.loads(f.read())
+        logging.info("Found cache at {0}".format(cache_file))
+        date = j['date']
+        # if the cache is old, update it
+        if ((datetime.now() - datetime.strptime(date, date_format))) > cache_expiry:
+            [images, image_scores] = update_cache()
+            logging.info("Detected old cache. Updating...")
+        # otherwise, fetch images and scores from cache
+        else:
+            images = j['images']
+            image_scores = j['image_scores']
 
-logging.info("Selected {0} with probability {1}".format(image['link'], image_score/sum(image_scores)))
-logging.info("Applying wallpaper")
-response = requests.get(image['link'])
-p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
+    # if cache is not found, create it
+    except IOError:
+        [images, image_scores] = update_cache()
+
+    if len(images) > 0:
+        image_scores = scores(images)
+    else:
+        logging.info("No results found")
+        sys.exit()
+    image = weighted_select(images, image_scores)
+    set_wallpaper(image)
