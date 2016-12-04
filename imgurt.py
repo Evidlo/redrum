@@ -191,7 +191,7 @@ def weighted_select(images):
         if rand_score <= 0:
             break
 
-    logging.info("Selected {0} with score {1}".format(image['link'], image['imgurt_score']))
+    logging.info("Selected {0} with score {1} out of {2} images".format(image['link'], image['imgurt_score'], len(images)))
     logging.info("The probability of selecting this image was {0}".format(image['imgurt_score']/total_imgurt_score))
 
     # set selected image as seen
