@@ -156,6 +156,3 @@ logging.info("Applying wallpaper")
 response = requests.get(image['link'])
 p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
 logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
-with open('/tmp/poop', 'w') as f:
-    f.write(str(response.content))
-
