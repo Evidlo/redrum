@@ -1,7 +1,8 @@
 #!/bin/env python3
 ## Evan Widloski - 2016-12-03
 ## Imgurt - Imgur wallpaper ranker and changer
-
+## Uses logistic function to choose wallpaper based
+##   on views resolution,  pect ratio
 import requests
 import logging
 import random
@@ -21,15 +22,14 @@ headers = {"Authorization":"Client-ID {0}".format(client_id)}
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 5
 
-# Use logistic function to give better differeniation between good and bad matches.
-# preset weights for scoring algorithm
+# Use logistic function to give better discrimination between good and bad matches.
 #   see https://en.wikipedia.org/wiki/Logistic_function
 #
 #                                               weight -->  ‚------
 #                       1                                  /
-#   f(x) = ----------------------------       ------------/-------------
+#   f(x) = ----------------------------                   /  <-- k (steepness)
 #          1 + e^(-k(x - midpoint))                      /
-#                                                 ------‘ ∧    k = slope
+#                                       0 -  -  - ------‘ ∧ -  -  -  -  -  -
 #                                                         |
 #                                                      midpoint
 ratio_k = 10
@@ -49,9 +49,8 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 # hide annoying requests messages
 logging.getLogger("requests").setLevel(logging.WARNING)
-
 # return a list of scores given a list of images
-# lower score is better
+# higher score is better
 def scores(images):
     scores = []
     max_views = max([image['views'] for image in images])
