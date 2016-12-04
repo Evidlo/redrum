@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 screen_width = 1600
 screen_height = 900
 
-subreddits = ["winterporn", "earthporn"]
+subreddits = ["winterporn", "earthporn", "natureporn"]
 
 # Use logistic function to give nonlinear discrimination between good and bad matches.
 #   see https://en.wikipedia.org/wiki/Logistic_function
@@ -62,6 +62,9 @@ cache_file = '/tmp/imgurt_cache'
 cache_expiry = timedelta(days=7)
 # use ctime format for storing cache date
 date_format = "%a %b %d %H:%M:%S %Y"
+# update cache when these options change
+options = [screen_width, screen_height, ratio_cutoff, views_cutoff, pixel_cutoff,
+           ratio_k, views_k, pixel_k, ratio_weight, views_weight, pixel_weight, url]
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -184,10 +187,20 @@ def set_wallpaper(image):
 # update image cache
 def update_cache():
     images = get_images(subreddits)
+
+    # make sure we actually got results
+    if len(images) == 0:
+        logging.info("No results found")
+        sys.exit()
+
     image_scores = scores(images)
     date = datetime.strftime(datetime.now(), date_format)
     f = open(cache_file, 'w')
-    f.write(json.dumps({'date': date, 'images': images, 'image_scores': image_scores}))
+    f.write(json.dumps({'date': date,
+                        'images': images,
+                        'image_scores': image_scores,
+                        'subreddits': subreddits,
+                        'options': options}))
     return [images, image_scores]
 
 
@@ -198,10 +211,11 @@ if __name__ == "__main__":
         j = json.loads(f.read())
         logging.info("Found cache at {0}".format(cache_file))
         date = j['date']
-        # if the cache is old, update it
-        if ((datetime.now() - datetime.strptime(date, date_format))) > cache_expiry:
-            [images, image_scores] = update_cache()
+        # if the cache is old or `options` has changed, update it
+        if ((datetime.now() - datetime.strptime(date, date_format)) > cache_expiry or
+                j['options'] != options):
             logging.info("Detected old cache. Updating...")
+            [images, image_scores] = update_cache()
         # otherwise, fetch images and scores from cache
         else:
             images = j['images']
@@ -211,10 +225,5 @@ if __name__ == "__main__":
     except IOError:
         [images, image_scores] = update_cache()
 
-    if len(images) > 0:
-        image_scores = scores(images)
-    else:
-        logging.info("No results found")
-        sys.exit()
     image = weighted_select(images, image_scores)
     set_wallpaper(image)
