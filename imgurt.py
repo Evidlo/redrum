@@ -65,8 +65,7 @@ cache_expiry = timedelta(days=7)
 date_format = "%a %b %d %H:%M:%S %Y"
 # update cache when these options change
 options = [sfw_only, subreddits, screen_width, screen_height, ratio_cutoff,
-           views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, ratio_weight,
-           views_weight, pixel_weight, url]
+           views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, url]
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
