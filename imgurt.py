@@ -20,8 +20,7 @@ screen_width = 1600
 screen_height = 900
 
 # search these subreddits (via Imgur)
-# subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
-subreddits = ["blackpeople"]
+subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
 sfw_only = True
 # allow an image to be selected more than once
 unseen_only = True
