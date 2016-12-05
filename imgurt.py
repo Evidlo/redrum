@@ -20,10 +20,11 @@ screen_width = 1600
 screen_height = 900
 
 # search these subreddits (via Imgur)
-subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
+# subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
+subreddits = ["blackpeople"]
 sfw_only = True
 # allow an image to be selected more than once
-unseen_only = False
+unseen_only = True
 
 # Use logistic function to give nonlinear discrimination between good and bad matches.
 #   see https://en.wikipedia.org/wiki/Logistic_function
@@ -42,11 +43,11 @@ unseen_only = False
 # note: must be in range 0-1
 ratio_cutoff = .95  # keep this high to avoid cutting off edges of image
 views_cutoff = .75  # image views percentile
-pixel_cutoff = .95  # image pixels / screen pixels
+pixel_cutoff = 1  # image pixels / screen pixels
 
 # discrimination factor - controls steepness at cutoff point
-ratio_k = 15
-views_k = 1
+ratio_k = 5
+views_k = 15
 pixel_k = 20 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
@@ -175,7 +176,12 @@ def get_images(subreddits):
 # select a random image weighted by score
 def weighted_select(images):
     # if unseen_only is true, only look at at unseen images
-    total_imgurt_score = sum([image['imgurt_score'] for image in images if not (unseen_only and image['seen'])])
+    unseen_images = [image for image in images if not(unseen_only and image['seen'])]
+    if len(unseen_images) == 0:
+        logging.info("Unseen images exhausted.  Set `unseen_only` to True or add more subreddits")
+        sys.exit()
+
+    total_imgurt_score = sum([image['imgurt_score'] for image in unseen_images])
     rand_score = random.uniform(0, total_imgurt_score)
     for image in images:
         if unseen_only and image['seen']:
