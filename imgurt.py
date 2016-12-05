@@ -1,4 +1,6 @@
 #!/bin/env python3
+# -*- coding: utf-8 -*-
+
 ## Evan Widloski - 2016-12-03
 ## Imgurt - Imgur wallpaper ranker and changer
 ## Uses logistic function to choose wallpaper based
@@ -18,7 +20,7 @@ screen_width = 1600
 screen_height = 900
 
 # search these subreddits (via Imgur)
-subreddits = ["winterporn", "earthporn", "natureporn"]
+subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
 sfw_only = True
 # allow an image to be selected more than once
 unseen_only = False
@@ -40,18 +42,12 @@ unseen_only = False
 # note: must be in range 0-1
 ratio_cutoff = .95  # keep this high to avoid cutting off edges of image
 views_cutoff = .75  # image views percentile
-pixel_cutoff = .75  # image pixels / screen pixels
+pixel_cutoff = .95  # image pixels / screen pixels
 
 # discrimination factor - controls steepness at cutoff point
-ratio_k = 10
-views_k = 5
-pixel_k = 5
-
-# weight - importance of parameter when selecting an image
-# note: these are automatically normalized, so their magnitude doesn't matter
-ratio_weight = 3
-views_weight = 1
-pixel_weight = 3
+ratio_k = 15
+views_k = 1
+pixel_k = 20 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 5
@@ -98,25 +94,23 @@ def score(images):
         # score total views from 0-1
         views_score = float(image['views']) / max_views
 
+        if image['width'] < screen_width or image['height'] < screen_height:
+            pixel_score = 0
+        else:
+            pixel_score = 1
         # score image pixels from 0-1
         # don't give any extra weight to images greater than our screen size
-        image_pixels = image['width'] * image['height']
-        pixel_score = float(image_pixels) / screen_pixels
-        if pixel_score > 1:
-            pixel_score = 1
+        # image_pixels = image['width'] * image['height']
+        # pixel_score = float(image_pixels) / screen_pixels
+        # if pixel_score > 1:
+        #     pixel_score = 1
 
         # Calculate final image score from presets.
-        # scores.append(  1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
-        #                 * ratio_weight
-        #               + 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
-        #                 * views_weight
-        #               + 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
-        #                 * pixel_weight)
         image['imgurt_score'] = (1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff))) *
                                  1/(1 + pow(math.e, -views_k * (views_score - views_cutoff))) *
                                  1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff))))
 
-def get_images(subreddits, seen = None):
+def get_images(subreddits):
 
     # get list of images and albums for each subreddit
 
