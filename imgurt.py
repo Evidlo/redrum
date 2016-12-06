@@ -177,7 +177,7 @@ def weighted_select(images):
     # if unseen_only is true, only look at at unseen images
     unseen_images = [image for image in images if not(unseen_only and image['seen'])]
     if len(unseen_images) == 0:
-        logging.info("Unseen images exhausted.  Set `unseen_only` to True or add more subreddits")
+        logging.info("Unseen images exhausted.  Set `unseen_only` to False or add more subreddits")
         sys.exit()
 
     total_imgurt_score = sum([image['imgurt_score'] for image in unseen_images])
