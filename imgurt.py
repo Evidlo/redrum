@@ -22,7 +22,7 @@ screen_height = 900
 # search these subreddits (via Imgur)
 subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
 sfw_only = True
-# allow an image to be selected more than once
+# don't select previously selected images
 unseen_only = True
 
 # Use logistic function to give nonlinear discrimination between good and bad matches.
@@ -93,16 +93,12 @@ def score(images):
         # score total views from 0-1
         views_score = float(image['views']) / max_views
 
-        if image['width'] < screen_width or image['height'] < screen_height:
-            pixel_score = 0
-        else:
-            pixel_score = 1
         # score image pixels from 0-1
         # don't give any extra weight to images greater than our screen size
-        # image_pixels = image['width'] * image['height']
-        # pixel_score = float(image_pixels) / screen_pixels
-        # if pixel_score > 1:
-        #     pixel_score = 1
+        image_pixels = image['width'] * image['height']
+        pixel_score = float(image_pixels) / screen_pixels
+        if pixel_score > 1:
+            pixel_score = 1
 
         # Calculate final image score from presets.
         image['imgurt_score'] = (1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff))) *
@@ -120,7 +116,7 @@ def get_images(subreddits):
         page_num = 0
         while page_num < max_pages:
             page_url = url.format(subreddit, page_num)
-            logging.debug("Downloading page #{0} from subreddit {1}".format(page_num, subreddit))
+            logging.info("Downloading page #{0} from subreddit {1}".format(page_num, subreddit))
             response = requests.get(page_url, headers=headers)
             page_results = response.json()['data']
             page_num += 1
@@ -160,10 +156,6 @@ def get_images(subreddits):
     if sfw_only:
         images = [image for image in images if image['nsfw'] == False]
 
-    # mark images as unseen
-    for image in images:
-        image['seen'] = False
-
     # make sure we actually got results
     if len(images) == 0:
         logging.info("No results found")
@@ -173,18 +165,18 @@ def get_images(subreddits):
 
 
 # select a random image weighted by score
-def weighted_select(images):
+def weighted_select(images, seen):
     # if unseen_only is true, only look at at unseen images
-    unseen_images = [image for image in images if not(unseen_only and image['seen'])]
-    if len(unseen_images) == 0:
-        logging.info("Unseen images exhausted.  Set `unseen_only` to False or add more subreddits")
+    if unseen_only:
+        images = [image for image in images if image['id'] not in seen]
+
+    if len(images) == 0:
+        logging.info("No images available.  Set `unseen_only` to False or add more subreddits")
         sys.exit()
 
-    total_imgurt_score = sum([image['imgurt_score'] for image in unseen_images])
+    total_imgurt_score = sum([image['imgurt_score'] for image in images])
     rand_score = random.uniform(0, total_imgurt_score)
     for image in images:
-        if unseen_only and image['seen']:
-            continue
         rand_score -= image['imgurt_score']
         if rand_score <= 0:
             break
@@ -195,14 +187,7 @@ def weighted_select(images):
     # set selected image as seen
     image['seen'] = True
 
-    # write to cache file
-    date = datetime.strftime(datetime.now(), date_format)
-    f = open(cache_file, 'w')
-    f.write(json.dumps({'date': date,
-                        'images': images,
-                        'options': options}, indent=4))
     return image
-
 
 # set wallpaper with feh
 def set_wallpaper(image):
@@ -214,11 +199,15 @@ def set_wallpaper(image):
     p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
 
-# update image cache
-def update_cache():
-
-    return images
-
+# save date, options, seen images and images to cache
+def save(images, date, seen, options):
+    # write to cache file
+    f = open(cache_file, 'w')
+    f.write(json.dumps({'date': date,
+                        'options': options,
+                        'seen':seen,
+                        'images': images}, indent=4))
+    f.close()
 
 if __name__ == "__main__":
     # attempt to load scored images from cache
@@ -232,17 +221,25 @@ if __name__ == "__main__":
                 j['options'] != options):
             logging.info("Detected old cache. Updating...")
             images = get_images(subreddits)
-            score(images)
+
         # otherwise, fetch scored images from cache
         else:
             images = j['images']
 
+        seen = j['seen']
+
     # if cache is not found, create it
     except IOError:
         logging.info("No cache found at {0}.  Creating...".format(cache_file))
+        date = datetime.strftime(datetime.now(), date_format)
         images = get_images(subreddits)
-        score(images)
+        seen = []
+
+    score(images)
 
     # select image and set as wallpaper
-    image = weighted_select(images)
+    image = weighted_select(images, seen)
+    seen.append(image['id'])
+
     set_wallpaper(image)
+    save(images, date, seen, options)
