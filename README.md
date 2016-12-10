@@ -22,9 +22,9 @@ Install the systemd units to run the script every 15 minutes.
   
 2. Install systemd user unit (optional)
 
-...** edit `systemd/imgurt.service` to point to `imgurt.py`
+..** edit `systemd/imgurt.service` to point to `imgurt.py`
 
-...** copy unit files
+..** copy unit files
 
     ```bash
     cp -u systemd/* ~/.config/systemd/user/
