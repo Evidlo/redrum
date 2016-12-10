@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 # search for images with this aspect ratio and resolution
 screen_width = 1600
 screen_height = 900
+screen_ratio = float(screen_width)/screen_height
 
 # search these subreddits (via Imgur)
 subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
@@ -45,8 +46,8 @@ views_cutoff = .75  # image views percentile
 pixel_cutoff = 1  # image pixels / screen pixels
 
 # discrimination factor - controls steepness at cutoff point
-ratio_k = 5
-views_k = 15
+ratio_k = 15
+views_k = 10
 pixel_k = 20 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
@@ -73,37 +74,46 @@ logger = logging.getLogger(__name__)
 # hide annoying requests messages
 logging.getLogger("requests").setLevel(logging.WARNING)
 
+def score_image(image, max_views):
+    # score image ratio match from 0-1
+    # calculates quotient of ratio.  the closer to 1, the better the match
+    image_ratio = float(image['width']) / image['height']
+    if screen_ratio < image_ratio:
+        ratio_score = screen_ratio / image_ratio
+    else:
+        ratio_score = image_ratio / screen_ratio
+
+    # score total views from 0-1
+    views_score = float(image['views']) / max_views
+
+    # score image pixels from 0-1
+    # don't give any extra weight to images greater than our screen size
+    width_score = float(image['width']) / screen_width
+    height_score = float(image['height']) / screen_height
+    if width_score > 1:
+        width_score = 1
+    if height_score > 1:
+        height_score = 1
+    pixel_score = width_score * height_score
+
+    return [ratio_score, views_score, pixel_score]
 
 # score each image based on parameters
 # higher score is better
 def score(images):
     max_views = max([image['views'] for image in images])
-    screen_pixels = screen_width * screen_height
-    screen_ratio = float(screen_width)/screen_height
 
     for image in images:
-        # score image ratio match from 0-1
-        # calculates quotient of ratio.  the closer to 1, the better the match
-        image_ratio = float(image['width']) / image['height']
-        if screen_ratio < image_ratio:
-            ratio_score = screen_ratio / image_ratio
-        else:
-            ratio_score = image_ratio / screen_ratio
 
-        # score total views from 0-1
-        views_score = float(image['views']) / max_views
-
-        # score image pixels from 0-1
-        # don't give any extra weight to images greater than our screen size
-        image_pixels = image['width'] * image['height']
-        pixel_score = float(image_pixels) / screen_pixels
-        if pixel_score > 1:
-            pixel_score = 1
+        [ratio_score, views_score, pixel_score] = score_image(image, max_views)
 
         # Calculate final image score from presets.
-        image['imgurt_score'] = (1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff))) *
-                                 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff))) *
-                                 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff))))
+        ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
+        views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
+        pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
+        image['imgurt_score'] = (ratio_logistic_score *
+                                 views_logistic_score *
+                                 pixel_logistic_score)
 
 def get_images(subreddits):
 
@@ -181,7 +191,10 @@ def weighted_select(images, seen):
         if rand_score <= 0:
             break
 
-    logging.info("Selected {0} with score {1} out of {2} images".format(image['link'], image['imgurt_score'], len(images)))
+    logging.info("Selected {0} ({1}) with score {2} out of {3} images".format(image['link'],
+                                                                              image['section'],
+                                                                              image['imgurt_score'],
+                                                                              len(images)))
     logging.info("The probability of selecting this image was {0}".format(image['imgurt_score']/total_imgurt_score))
 
     # set selected image as seen
