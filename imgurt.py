@@ -11,6 +11,7 @@ import logging
 import random
 import math
 import sys
+import os
 from subprocess import Popen, PIPE
 import json
 from datetime import datetime, timedelta
@@ -59,7 +60,7 @@ client_id = "5f21952153b5f6c"
 headers = {"Authorization":"Client-ID {0}".format(client_id)}
 
 # store scored images
-cache_file = '/tmp/imgurt_cache'
+cache_file = os.path.expanduser('~/.cache/imgurt_cache')
 # set cache to expire after 1 week
 cache_expiry = timedelta(days=7)
 # use ctime format for storing cache date
@@ -96,7 +97,12 @@ def score_image(image, max_views):
         height_score = 1
     pixel_score = width_score * height_score
 
-    return [ratio_score, views_score, pixel_score]
+    ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
+    views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
+    pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
+    final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
+
+    return final_score
 
 # score each image based on parameters
 # higher score is better
@@ -105,15 +111,8 @@ def score(images):
 
     for image in images:
 
-        [ratio_score, views_score, pixel_score] = score_image(image, max_views)
-
         # Calculate final image score from presets.
-        ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
-        views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
-        pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
-        image['imgurt_score'] = (ratio_logistic_score *
-                                 views_logistic_score *
-                                 pixel_logistic_score)
+        image['imgurt_score'] = score_image(image, max_views)
 
 def get_images(subreddits):
 
@@ -215,6 +214,8 @@ def set_wallpaper(image):
 # save date, options, seen images and images to cache
 def save(images, date, seen, options):
     # write to cache file
+    if not os.path.exists(cache_file):
+        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
     f = open(cache_file, 'w')
     f.write(json.dumps({'date': date,
                         'options': options,
