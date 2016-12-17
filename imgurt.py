@@ -75,6 +75,7 @@ logger = logging.getLogger(__name__)
 # hide annoying requests messages
 logging.getLogger("requests").setLevel(logging.WARNING)
 
+# calculate a score for an image
 def score_image(image, max_views):
     # score image ratio match from 0-1
     # calculates quotient of ratio.  the closer to 1, the better the match
@@ -97,22 +98,22 @@ def score_image(image, max_views):
         height_score = 1
     pixel_score = width_score * height_score
 
+    # run the scores through logistic function
     ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
     views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
     pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
+
     final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
 
-    return final_score
+    # `imgurt.py` only uses final_score, but `tune.py` needs access to the rest
+    return [final_score,
+            ratio_score,
+            views_score,
+            pixel_score,
+            ratio_logistic_score,
+            views_logistic_score,
+            pixel_logistic_score]
 
-# score each image based on parameters
-# higher score is better
-def score(images):
-    max_views = max([image['views'] for image in images])
-
-    for image in images:
-
-        # Calculate final image score from presets.
-        image['imgurt_score'] = score_image(image, max_views)
 
 def get_images(subreddits):
 
@@ -249,7 +250,14 @@ if __name__ == "__main__":
         images = get_images(subreddits)
         seen = []
 
-    score(images)
+    max_views = max([image['views'] for image in images])
+
+    # score each image based on parameters
+    # higher score is better
+    for image in images:
+
+        # Calculate final image score from presets.
+        image['imgurt_score'] = score_image(image, max_views)[0]
 
     # select image and set as wallpaper
     image = weighted_select(images, seen)
