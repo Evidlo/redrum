@@ -49,7 +49,7 @@ pixel_cutoff = 1  # image pixels / screen pixels
 # discrimination factor - controls steepness at cutoff point
 ratio_k = 15
 views_k = 10
-pixel_k = 20 # set high for a very sharp threshold
+pixel_k = 35 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 5
@@ -236,6 +236,7 @@ if __name__ == "__main__":
                 j['options'] != options):
             logging.info("Detected old cache. Updating...")
             images = get_images(subreddits)
+            date = datetime.now().strftime(date_format)
 
         # otherwise, fetch scored images from cache
         else:
