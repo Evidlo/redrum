@@ -11,13 +11,10 @@
 from imgurt import *
 
 # put some images of varying quality here to see their score before and after logistic function
-# these images must be from imgurt_cache
+# these images must be selected from imgurt_cache
 links = ['D331RXf', # bad aspect ratio and resolution, high views
          'P7I7bML', # good aspect ratio and resolution
          'GW2i3K4', # good ratio and resolution, low views
-         'QlyUhRY',
-         'J9zLI00',
-         'WXeaCbp',
          ]
 
 

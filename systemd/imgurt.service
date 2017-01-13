@@ -1,10 +1,6 @@
 [Unit]
 Description=Grab random wallpaper
-After=suspend.target
 
 [Service]
 Environment="DISPLAY=:0"
 ExecStart=/home/evan/resources/imgurt/imgurt.py
-
-[Install]
-WantedBy=suspend.target

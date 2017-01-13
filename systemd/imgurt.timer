@@ -2,7 +2,9 @@
 Description=Run random_wallpaper.service periodically
 
 [Timer]
-OnCalendar=*:0/15
+# change wallpaper every thirty minutes (to the hour)
+OnCalendar=*:0/30
+# if the timer is past due (e.g. after sleep) , run it immediately
 Persistent=true
 
 [Install]

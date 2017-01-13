@@ -52,7 +52,7 @@ views_k = 10
 pixel_k = 35 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
-max_pages = 5
+max_pages = 10
 url = "https://api.imgur.com/3/gallery/r/{0}/top/year/{1}"
 album_url = "https://api.imgur.com/3/album/{0}"
 # imgur api id
@@ -67,7 +67,7 @@ cache_expiry = timedelta(days=7)
 date_format = "%a %b %d %H:%M:%S %Y"
 # update cache when these options change
 options = [sfw_only, subreddits, screen_width, screen_height, ratio_cutoff,
-           views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, url]
+           views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, max_pages, url]
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -105,7 +105,7 @@ def score_image(image, max_views):
 
     final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
 
-    # `imgurt.py` only uses final_score, but `tune.py` needs access to the rest
+    # `imgurt.py` only uses final_score, but `tune.py` also uses this function and needs the rest
     return [final_score,
             ratio_score,
             views_score,
@@ -181,7 +181,7 @@ def weighted_select(images, seen):
         images = [image for image in images if image['id'] not in seen]
 
     if len(images) == 0:
-        logging.info("No images available.  Set `unseen_only` to False or add more subreddits")
+        logging.info("No images available.  Set `unseen_only` to False, increase `max_pages` or add more subreddits")
         sys.exit()
 
     total_imgurt_score = sum([image['imgurt_score'] for image in images])
@@ -207,12 +207,12 @@ def set_wallpaper(image):
     logging.info("Applying wallpaper")
 
     # download image and send to feh stdin
-
     try:
         response = requests.get(image['link'])
     except ConnectionError:
         logging.error("Connection error")
         quit()
+
     p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
 
