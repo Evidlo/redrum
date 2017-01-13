@@ -208,7 +208,11 @@ def set_wallpaper(image):
 
     # download image and send to feh stdin
 
-    response = requests.get(image['link'])
+    try:
+        response = requests.get(image['link'])
+    except ConnectionError:
+        logging.error("Connection error")
+        quit()
     p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
 
