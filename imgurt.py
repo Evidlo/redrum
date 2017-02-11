@@ -49,7 +49,7 @@ pixel_cutoff = 1  # image pixels / screen pixels
 
 # discrimination factor - controls steepness at cutoff point
 ratio_k = 15
-views_k = 10
+views_k = 2
 pixel_k = 35 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
