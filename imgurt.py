@@ -127,16 +127,21 @@ def get_images(subreddits):
         page_num = 0
         while page_num < max_pages:
             page_url = url.format(subreddit, page_num)
-            logging.info("Downloading page #{0} from subreddit {1}".format(page_num, subreddit))
-            response = requests.get(page_url, headers=headers)
-            page_results = response.json()['data']
-            page_num += 1
+            logging.info("Indexing page #{0} from subreddit {1}".format(page_num, subreddit))
+            response = requests.get(page_url, headers=headers).json()
 
-            # once we hit the last page, break
-            if len(page_results) == 0:
-                break
+            if response['success'] == True:
+                page_results = response['data']
+                page_num += 1
 
-            results += page_results
+                # once we hit the last page, break
+                if len(page_results) == 0:
+                    break
+
+                results += page_results
+
+            else:
+                logging.error("Received error from Imgur: {0}".format(response['data']['error']))
 
         if page_num == 0:
             logging.info("No results found for subreddit {0}.".format(subreddit))
