@@ -7,6 +7,7 @@
 ##   on number of views, resolution and aspect ratio
 
 import requests
+from requests.exceptions import ConnectionError
 import logging
 import random
 import math
