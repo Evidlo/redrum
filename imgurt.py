@@ -54,7 +54,7 @@ pixel_k = 35 # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 10
-url = "https://api.imgur.com/3/gallery/r/{0}/top/year/{1}"
+url = "https://api.imgur.com/3/gallery/r/{0}/top/all/{1}"
 album_url = "https://api.imgur.com/3/album/{0}"
 # imgur api id
 client_id = "5f21952153b5f6c"
