@@ -23,7 +23,11 @@ screen_height = 900
 screen_ratio = float(screen_width)/screen_height
 
 # search these subreddits (via Imgur)
-subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn"]
+subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn", "jungleporn",
+              "astrophotography", "californiapics", "breathless", "amateurphotography",
+              "amateurearthporn", "eyecandy", "bridgeporn", "cabinporn", "churchporn",
+              "megalithporn", "summerporn", "mushroomporn", "machineporn",
+              "fractalporn", "architectureporn"]
 sfw_only = True
 # don't select previously selected images
 unseen_only = True
@@ -149,14 +153,15 @@ def get_images(subreddits):
     # clean list of images and albums
 
     # build list of images, replacing albums with images they contain
+    logging.info("Unpacking albums")
     images = []
     for result in results:
         # if result is an album, append its images to `images`
         if result['is_album']:
             album_id = result['id']
             logging.debug("Unpacking album {0}".format(album_id))
-            response = requests.get(album_url.format(album_id), headers=headers)
-            album_results = response.json()['data']
+            response = requests.get(album_url.format(album_id), headers=headers).json()
+            album_results = response['data']
 
             for image in album_results['images']:
                 images.append(image)
