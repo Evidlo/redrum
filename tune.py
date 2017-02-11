@@ -24,8 +24,8 @@ images = j['images']
 
 max_views = max([image['views'] for image in images])
 
-print("%-12s%-12s%-12s%-7s  |  %-12s%-12s%-7s  |  %-12s" % ("ID", "ratio", "views", "pixel", "ratio_l", "views_l", "pixel_l", "final"))
-print("===============================================================================================")
+print("%-12s  |  %-12s%-12s%-7s  |  %-12s%-12s%-7s  |  %-12s" % ("ID", "ratio", "views", "pixel", "ratio_l", "views_l", "pixel_l", "final"))
+print("=======================================================================================================")
 for link in links:
     image = [image for image in images if image['id'] == link][0]
 
@@ -38,7 +38,7 @@ for link in links:
      pixel_logistic_score] = score_image(image, max_views)
 
 
-    print("%-12s%-12.5f%-12.5f%-7.5f  |  %-12.5f%-12.5f%-7.5f  |  %-12.5f" % (image['id'],
+    print("%-12s  |  %-12.5f%-12.5f%-7.5f  |  %-12.5f%-12.5f%-7.5f  |  %-12.11f" % (image['id'],
                                                                               ratio_score,
                                                                               views_score,
                                                                               pixel_score,
@@ -47,4 +47,4 @@ for link in links:
                                                                               pixel_logistic_score,
                                                                               final_score))
 
-    print("-----------------------------------------------------------------------------------------------")
+    print("-------------------------------------------------------------------------------------------------------")
