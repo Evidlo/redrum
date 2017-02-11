@@ -177,6 +177,15 @@ def get_images(subreddits):
         logging.info("No results found")
         sys.exit()
 
+    # score each image based on parameters
+    # higher score is better
+    logging.info("Scoring images")
+    max_views = max([image['views'] for image in images])
+    for image in images:
+
+        # Calculate final image score from presets.
+        image['imgurt_score'] = score_image(image, max_views)[0]
+
     return images
 
 
@@ -261,18 +270,9 @@ if __name__ == "__main__":
         images = get_images(subreddits)
         seen = []
 
-    max_views = max([image['views'] for image in images])
-
-    # score each image based on parameters
-    # higher score is better
-    for image in images:
-
-        # Calculate final image score from presets.
-        image['imgurt_score'] = score_image(image, max_views)[0]
-
     # select image and set as wallpaper
     image = weighted_select(images, seen)
+    set_wallpaper(image)
     seen.append(image['id'])
 
-    set_wallpaper(image)
     save(images, date, seen, options)
