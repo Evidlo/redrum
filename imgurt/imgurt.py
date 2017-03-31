@@ -9,63 +9,59 @@
 import requests
 from requests.exceptions import ConnectionError
 import logging
-import random
-import math
-import sys
-import os
+import random, math
+import os, sys, shutil
 from subprocess import Popen, PIPE
 import json
 from datetime import datetime, timedelta
+from configparser import SafeConfigParser
 
-# search for images with this aspect ratio and resolution
-screen_width = 1600
-screen_height = 900
+module_path = os.path.dirname(os.path.realpath(__file__))
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
+# hide annoying requests messages
+logging.getLogger("requests").setLevel(logging.WARNING)
+
+# attempt to load settings from file
+config_file = os.path.expanduser('~/.config/imgurt.ini')
+
+if not os.path.exists(config_file):
+    os.makedirs(os.path.dirname(config_file), exist_ok=True)
+    logging.info("No config found at {0}.  Installing...".format(config_file))
+    shutil.copyfile(module_path + '/imgurt.ini', config_file)
+
+parser = SafeConfigParser()
+parser.read(config_file)
+config = parser['imgurt']
+
+screen_width = config.getint('screen_width', 1600)
+screen_height = config.getint('screen_height', 900)
 screen_ratio = float(screen_width)/screen_height
 
-# search these subreddits (via Imgur)
-subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn", "jungleporn",
-              "astrophotography", "californiapics", "breathless", "amateurphotography",
-              "amateurearthporn", "eyecandy", "bridgeporn", "cabinporn", "churchporn",
-              "megalithporn", "summerporn", "mushroomporn", "fractalporn",
-              "architectureporn"]
-sfw_only = True
-# don't select previously selected images
-unseen_only = True
+subreddits = config.get('subreddits').split('\n')
+sfw_only = config.getboolean('sfw_only', True)
+unseen_only = config.getboolean('unseen_only', True)
 
-# Use logistic function to give nonlinear discrimination between good and bad matches.
-#   see https://en.wikipedia.org/wiki/Logistic_function
-#
-#                                               weight -->  ‚------
-#                       1                                  /
-#   f(x) = ----------------------------                   /  <-- k (steepness)
-#            1 + e^(-k(x - cutoff))                      /
-#                                       0 -  -  - ------‘ ∧ -  -  -  -  -  -
-#                                                         |
-#                                                      cutoff
+ratio_cutoff = config.getfloat('ratio_cutoff', .95)
+views_cutoff = config.getfloat('views_cutoff', .75)
+pixel_cutoff = config.getfloat('pixel_cutoff', 1)
 
-# cutoff - set this about halfway between what you would consider a good and bad value
-# eg. if an image having 60% of the pixels of the screen is unacceptable
-#     but 90% is acceptable, set pixel_cutoff to .75
-# note: must be in range 0-1
-ratio_cutoff = .95  # keep this high to avoid cutting off edges of image
-views_cutoff = .75  # image views percentile
-pixel_cutoff = 1  # image pixels / screen pixels
+ratio_k = config.getfloat('ratio_k', 15)
+views_k = config.getfloat('views_k', 15)
+pixel_k = config.getfloat('pixel_k', 15)
 
-# discrimination factor - controls steepness at cutoff point
-ratio_k = 15
-views_k = 2
-pixel_k = 35  # set high for a very sharp threshold
+max_pages = config.getint('max_pages', 10)
+url = config.get('url', "https://api.imgur.com/3/gallery/r/{0}/top/all/{1}")
+album_url = config.get('album_url', "https://api.imgur.com/3/album/{0}")
 
-# maximum number of pages of images to load for 1 subreddit
-max_pages = 10
-url = "https://api.imgur.com/3/gallery/r/{0}/top/all/{1}"
-album_url = "https://api.imgur.com/3/album/{0}"
-# imgur api id
-client_id = "5f21952153b5f6c"
+
+# imgur downloading
+client_id = config.get('client_id', "5f21952153b5f6c")
 headers = {"Authorization": "Client-ID {0}".format(client_id)}
 
-# store scored images
-cache_file = os.path.expanduser('~/.cache/imgurt_cache')
+# where to store scored image metadata
+cache_file = os.path.expanduser(config.get('cache_file', '~/.cache/imgurt_cache.json'))
 # set cache to expire after 1 week
 cache_expiry = timedelta(days=7)
 # use ctime format for storing cache date
@@ -73,11 +69,6 @@ date_format = "%a %b %d %H:%M:%S %Y"
 # update cache when these options change
 options = [sfw_only, subreddits, screen_width, screen_height, ratio_cutoff,
            views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, max_pages, url]
-
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-logger = logging.getLogger(__name__)
-# hide annoying requests messages
-logging.getLogger("requests").setLevel(logging.WARNING)
 
 # calculate a score for an image
 def score_image(image, max_views):
@@ -119,9 +110,9 @@ def score_image(image, max_views):
             pixel_logistic_score]
 
 
+# get list of image and album metadata from each subreddit
 def get_images(subreddits):
 
-    # get list of images and albums for each subreddit
 
     # get results for each subreddit
     results = []
@@ -244,24 +235,28 @@ def save(images, date, seen, options):
     # write to cache file
     if not os.path.exists(cache_file):
         os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-    f = open(cache_file, 'w')
-    f.write(json.dumps({'date': date,
-                        'options': options,
-                        'seen':seen,
-                        'images': images}, indent=4))
-    f.close()
+    with open(cache_file, 'w') as cache:
+        cache.write(json.dumps({'date': date,
+                            'options': options,
+                            'seen':seen,
+                            'images': images}, indent=4))
 
 if __name__ == "__main__":
     # attempt to load scored images from cache
-    try:
-        f = open(cache_file, 'r')
-        j = json.loads(f.read())
+    if not os.path.exists(cache_file):
+        logging.info("No previous score cache found at {0}.".format(cache_file))
+        date = datetime.strftime(datetime.now(), date_format)
+        images = get_images(subreddits)
+
+    with open(cache_file, 'r') as cache:
+        j = json.loads(cache.read())
         logging.info("Found cache at {0}".format(cache_file))
         date = j['date']
         # if the cache is old or `options` has changed, update it
         if ((datetime.now() - datetime.strptime(date, date_format)) > cache_expiry or
                 j['options'] != options):
             logging.info("Detected old cache. Updating...")
+            # reload image metadata
             images = get_images(subreddits)
             date = datetime.now().strftime(date_format)
 
@@ -270,13 +265,6 @@ if __name__ == "__main__":
             images = j['images']
 
         seen = j['seen']
-
-    # if cache is not found, create it
-    except IOError:
-        logging.info("No cache found at {0}.  Creating...".format(cache_file))
-        date = datetime.strftime(datetime.now(), date_format)
-        images = get_images(subreddits)
-        seen = []
 
     # select image and set as wallpaper
     image = weighted_select(images, seen)
