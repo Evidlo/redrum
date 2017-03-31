@@ -2,7 +2,7 @@
 
 Imgurt is a wallpaper downloader which scores wallpapers and selects the best based on resolution, aspect ratio, and number of views.  It remembers which wallpapers were selected previously so you  never see the same image twice.
 
-Install the systemd units to run the script every 15 minutes.
+Install the systemd units to run the script every two hours.
 
 ## Usage
 
