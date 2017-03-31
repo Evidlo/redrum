@@ -26,8 +26,8 @@ screen_ratio = float(screen_width)/screen_height
 subreddits = ["winterporn", "earthporn", "natureporn", "spaceporn", "jungleporn",
               "astrophotography", "californiapics", "breathless", "amateurphotography",
               "amateurearthporn", "eyecandy", "bridgeporn", "cabinporn", "churchporn",
-              "megalithporn", "summerporn", "mushroomporn", "machineporn",
-              "fractalporn", "architectureporn"]
+              "megalithporn", "summerporn", "mushroomporn", "fractalporn",
+              "architectureporn"]
 sfw_only = True
 # don't select previously selected images
 unseen_only = True
@@ -54,7 +54,7 @@ pixel_cutoff = 1  # image pixels / screen pixels
 # discrimination factor - controls steepness at cutoff point
 ratio_k = 15
 views_k = 2
-pixel_k = 35 # set high for a very sharp threshold
+pixel_k = 35  # set high for a very sharp threshold
 
 # maximum number of pages of images to load for 1 subreddit
 max_pages = 10
@@ -62,7 +62,7 @@ url = "https://api.imgur.com/3/gallery/r/{0}/top/all/{1}"
 album_url = "https://api.imgur.com/3/album/{0}"
 # imgur api id
 client_id = "5f21952153b5f6c"
-headers = {"Authorization":"Client-ID {0}".format(client_id)}
+headers = {"Authorization": "Client-ID {0}".format(client_id)}
 
 # store scored images
 cache_file = os.path.expanduser('~/.cache/imgurt_cache')
@@ -74,7 +74,6 @@ date_format = "%a %b %d %H:%M:%S %Y"
 options = [sfw_only, subreddits, screen_width, screen_height, ratio_cutoff,
            views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, max_pages, url]
 
-import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 # hide annoying requests messages
@@ -222,8 +221,10 @@ def weighted_select(images, seen):
 
     return image
 
+
 # set wallpaper with feh
 def set_wallpaper(image):
+
     logging.info("Applying wallpaper")
 
     # download image and send to feh stdin
@@ -236,8 +237,10 @@ def set_wallpaper(image):
     p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
     logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
 
+
 # save date, options, seen images and images to cache
 def save(images, date, seen, options):
+
     # write to cache file
     if not os.path.exists(cache_file):
         os.makedirs(os.path.dirname(cache_file), exist_ok=True)
