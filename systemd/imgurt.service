@@ -1,6 +1,0 @@
-[Unit]
-Description=Grab random wallpaper
-
-[Service]
-Environment="DISPLAY=:0"
-ExecStart=/home/evan/resources/imgurt/imgurt.py
