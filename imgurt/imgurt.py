@@ -251,22 +251,24 @@ def main():
         logging.info("No previous score cache found at {0}.".format(cache_file))
         date = datetime.strftime(datetime.now(), date_format)
         images = get_images(subreddits)
+        seen = []
 
-    with open(cache_file, 'r') as cache:
-        j = json.loads(cache.read())
-        logging.info("Found cache at {0}".format(cache_file))
-        date = j['date']
-        # if the cache is old or `options` has changed, update it
-        if ((datetime.now() - datetime.strptime(date, date_format)) > cache_expiry or
-                j['options'] != options):
-            logging.info("Detected old cache. Updating...")
-            # reload image metadata
-            images = get_images(subreddits)
-            date = datetime.now().strftime(date_format)
+    else:
+        with open(cache_file, 'r') as cache:
+            j = json.loads(cache.read())
+            logging.info("Found cache at {0}".format(cache_file))
+            date = j['date']
+            # if the cache is old or `options` has changed, update it
+            if ((datetime.now() - datetime.strptime(date, date_format)) > cache_expiry or
+                    j['options'] != options):
+                logging.info("Detected old cache. Updating...")
+                # reload image metadata
+                images = get_images(subreddits)
+                date = datetime.now().strftime(date_format)
 
-        # otherwise, fetch scored images from cache
-        else:
-            images = j['images']
+            # otherwise, fetch scored images from cache
+            else:
+                images = j['images']
 
         seen = j['seen']
 
