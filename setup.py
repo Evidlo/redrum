@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='imgurt',
@@ -6,7 +6,8 @@ setup(
     packages=['imgurt'],
     author="Evan Widloski",
     author_email="evan@evanw.org",
-    description="uses math to select wallpapers from Reddit"
+    description="uses math to select wallpapers from Reddit",
+    long_description=open('README.rst').read(),
     license="MIT",
     keywords="imgur reddit wallpaper changer",
     url="https://github.com/evidlo/imgurt",
