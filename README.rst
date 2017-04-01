@@ -25,15 +25,15 @@ Installation
   
 2. Install systemd user unit (optional)
 
-  * edit `systemd/imgurt.service` to point to `imgurt.py`
+   * edit `systemd/imgurt.service` to point to `imgurt.py`
 
-  * copy unit files
+   * copy unit files
 
-    .. code:: bash
+   .. code:: bash
 
-       cp -u systemd/* ~/.config/systemd/user/
-       systemctl --user enable imgurt.timer
-       systemctl --user start imgurt.timer
+      cp -u systemd/* ~/.config/systemd/user/
+      systemctl --user enable imgurt.timer
+      systemctl --user start imgurt.timer
   
 
   
