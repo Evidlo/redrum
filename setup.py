@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.1',
+    version='1.2',
     packages=['imgurt'],
     author="Evan Widloski",
     author_email="evan@evanw.org",
