@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.2.post4',
+    version='1.2.post6',
     packages=['imgurt'],
     author="Evan Widloski",
     author_email="evan@evanw.org",
@@ -11,7 +11,10 @@ setup(
     license="MIT",
     keywords="imgur reddit wallpaper changer",
     url="https://github.com/evidlo/imgurt",
-    scripts=['imgurt/imgurt'],
+    entry_points={
+        'console_scripts': ['imgurt = imgurt.imgurt:main']
+    },
+    package_data={'': '*'},
     install_requires=[
         "PyYAML",
         "requests",

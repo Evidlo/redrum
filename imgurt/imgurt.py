@@ -6,11 +6,15 @@
 ## Uses logistic function to choose wallpaper based
 ##   on number of views, resolution and aspect ratio
 
+import sys
+if sys.version_info[0] == 2:
+    sys.exit('Please install using pip3.')
+
 import requests
 from requests.exceptions import ConnectionError
 import logging
 import random, math
-import os, sys, shutil
+import os, shutil
 from subprocess import Popen, PIPE
 import json
 from datetime import datetime, timedelta
@@ -241,7 +245,7 @@ def save(images, date, seen, options):
                             'seen':seen,
                             'images': images}, indent=4))
 
-if __name__ == "__main__":
+def main():
     # attempt to load scored images from cache
     if not os.path.exists(cache_file):
         logging.info("No previous score cache found at {0}.".format(cache_file))
@@ -272,3 +276,6 @@ if __name__ == "__main__":
     seen.append(image['id'])
 
     save(images, date, seen, options)
+
+if __name__ == "__main__":
+    main()

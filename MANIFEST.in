@@ -1,3 +1,4 @@
 include README.rst
 include docs/*
 include imgurt.service.d/*
+include imgurt/*
