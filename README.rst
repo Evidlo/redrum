@@ -31,9 +31,15 @@ Installation
 
    .. code:: bash
 
+      # copy service files
       cp -u systemd/* ~/.config/systemd/user/
+
+      # enable and start systemd timer
       systemctl --user enable imgurt.timer
       systemctl --user start imgurt.timer
+
+      # the service can be triggered manually as well
+      systemctl --user start imgurt
   
 
   

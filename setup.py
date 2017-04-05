@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.2.post6',
+    version='1.2.post7',
     packages=['imgurt'],
     author="Evan Widloski",
     author_email="evan@evanw.org",
@@ -14,12 +14,12 @@ setup(
     entry_points={
         'console_scripts': ['imgurt = imgurt.imgurt:main']
     },
-    package_data={'': '*'},
     install_requires=[
         "PyYAML",
         "requests",
     ],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3"
     ]
 )
