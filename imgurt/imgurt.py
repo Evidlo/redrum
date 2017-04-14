@@ -33,6 +33,7 @@ config_file = os.path.expanduser('~/.config/imgurt.ini')
 if not os.path.exists(config_file):
     os.makedirs(os.path.dirname(config_file), exist_ok=True)
     logging.info("No config found at {0}.  Installing...".format(config_file))
+    logging.info("Please update {0} with your preferred options and run imgurt again.")
     shutil.copyfile(module_path + '/imgurt.ini', config_file)
 
 parser = SafeConfigParser()

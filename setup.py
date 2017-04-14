@@ -2,8 +2,9 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.2.post7',
+    version='1.2.post11',
     packages=['imgurt'],
+    package_data={'imgurt': ['imgurt.ini']},
     author="Evan Widloski",
     author_email="evan@evanw.org",
     description="uses math to select wallpapers from Reddit",
