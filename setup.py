@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.2.post11',
+    version='1.4.1',
     packages=['imgurt'],
     package_data={'imgurt': ['imgurt.ini']},
     author="Evan Widloski",
@@ -18,6 +18,7 @@ setup(
     install_requires=[
         "PyYAML",
         "requests",
+        "configparser"
     ],
     classifiers=[
         "Programming Language :: Python :: 2",

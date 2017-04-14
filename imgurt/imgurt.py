@@ -7,9 +7,6 @@
 ##   on number of views, resolution and aspect ratio
 
 import sys
-if sys.version_info[0] == 2:
-    sys.exit('Please install using pip3.')
-
 import requests
 from requests.exceptions import ConnectionError
 import logging
@@ -32,9 +29,10 @@ config_file = os.path.expanduser('~/.config/imgurt.ini')
 
 if not os.path.exists(config_file):
     os.makedirs(os.path.dirname(config_file), exist_ok=True)
-    logging.info("No config found at {0}.  Installing...".format(config_file))
-    logging.info("Please update {0} with your preferred options and run imgurt again.")
+    logging.info("No config found at {0}.  Creating...".format(config_file))
     shutil.copyfile(module_path + '/imgurt.ini', config_file)
+    logging.info("Update config with your preferred options and run imgurt again.")
+    sys.exit()
 
 parser = SafeConfigParser()
 parser.read(config_file)
@@ -179,7 +177,7 @@ def get_images(subreddits):
 
     # score each image based on parameters
     # higher score is better
-    logging.info("Scoring images")
+    logging.info("Scoring {} images".format(len(images)))
     max_views = max([image['views'] for image in images])
     for image in images:
 
