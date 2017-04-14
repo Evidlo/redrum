@@ -65,6 +65,10 @@ headers = {"Authorization": "Client-ID {0}".format(client_id)}
 
 # where to store scored image metadata
 cache_file = os.path.expanduser(config.get('cache_file', '~/.cache/imgurt_cache.json'))
+# where to store current_image
+image_file = os.path.expanduser(config.get('image_file', '~/.cache/imgurt_image'))
+# how to set the background
+wallpaper_command = config.get('wallpaper_command', 'feh --bg-scale {image_file}')
 # set cache to expire after 1 week
 cache_expiry = timedelta(days=7)
 # use ctime format for storing cache date
@@ -224,12 +228,17 @@ def set_wallpaper(image):
     # download image and send to feh stdin
     try:
         response = requests.get(image['link'])
+        if response.status_code == 200:
+            with open(image_file, 'wb') as f:
+                f.write(response.content)
+        else:
+            logging.error("Got response {} when downloading image.".format(reponse.status_code))
     except ConnectionError:
         logging.error("Connection error")
         quit()
 
-    p = Popen(['feh', '-', '--bg-fill'], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    logger.debug("feh response: {0}".format(p.communicate(input=(response.content))))
+    p = Popen(wallpaper_command.format(image_file=image_file), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+    logger.debug("wallpaper_command response: {0}".format(p.communicate(input=(response.content))))
 
 
 # save date, options, seen images and images to cache
