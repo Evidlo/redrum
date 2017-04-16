@@ -45,12 +45,15 @@ If imgurt can't find a config file, it will create one in `~/.config/imgurt.ini`
    No config found at /home/evan/.config/imgurt.ini.  Creating...
    Update config with your preferred options and run imgurt again.
 
-  >>> imgurt
-  No previous score cache found at /home/evan/.cache/imgurt_cache.json.
-  Indexing page #0 from subreddit winterporn
-  Indexing page #1 from subreddit winterporn
-  Indexing page #2 from subreddit winterporn
-  ...
+   >>> imgurt
+   No previous score cache found at /home/evan/.cache/imgurt_cache.json.
+   Indexing page #0 from subreddit winterporn
+   Indexing page #1 from subreddit winterporn
+   Indexing page #2 from subreddit winterporn
+   ...
+   Selected http://i.imgur.com/3UWbcYG.jpg (EarthPorn) with score 5.21729920261845e-05 out of 5971 images
+   The probability of selecting this image was 0.009851421028579594
+   Applying wallpaper
 
   
   
