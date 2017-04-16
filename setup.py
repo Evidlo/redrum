@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='imgurt',
-    version='1.4.1',
+    version='1.4.5',
     packages=['imgurt'],
     package_data={'imgurt': ['imgurt.ini']},
     author="Evan Widloski",

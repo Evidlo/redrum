@@ -1,8 +1,8 @@
 [Unit]
-Description=Run random_wallpaper.service periodically
+Description=Run imgurt.service periodically
 
 [Timer]
-OnCalendar=*-*-* 00:00:0/30
+OnCalendar=*-*-* 00/2:00:00
 Persistent=true
 
 [Install]

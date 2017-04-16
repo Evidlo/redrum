@@ -7,6 +7,10 @@
 ##   on number of views, resolution and aspect ratio
 
 import sys
+
+if sys.version_info[0] < 3:
+    sys.exit("Imgurt must be run in python3 (or installed through pip3.)")
+
 import requests
 from requests.exceptions import ConnectionError
 import logging
