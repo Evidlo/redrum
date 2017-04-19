@@ -4,7 +4,7 @@ Description=Grab random wallpaper
 [Service]
 Environment="DISPLAY=:0"
 ExecStartPre=/usr/bin/nm-online --timeout=30
-ExecStart=/path/to/imgurt
+ExecStart=/path/to/redrum
 
 [Install]
 WantedBy=suspend.target

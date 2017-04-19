@@ -1,5 +1,5 @@
 **/*.pyc
 **/__pycache__
 dist
-imgurt.egg-info
+redrum.egg-info
 MANIFEST

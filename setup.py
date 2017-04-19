@@ -1,19 +1,19 @@
 from setuptools import setup
 
 setup(
-    name='imgurt',
+    name='redrum',
     version='1.4.5',
-    packages=['imgurt'],
-    package_data={'imgurt': ['imgurt.ini']},
+    packages=['redrum'],
+    package_data={'redrum': ['redrum.ini']},
     author="Evan Widloski",
     author_email="evan@evanw.org",
     description="uses math to select wallpapers from Reddit",
     long_description=open('README.rst').read(),
     license="MIT",
-    keywords="imgur reddit wallpaper changer",
-    url="https://github.com/evidlo/imgurt",
+    keywords="Reddit wallpaper changer",
+    url="https://github.com/evidlo/redrum",
     entry_points={
-        'console_scripts': ['imgurt = imgurt.imgurt:main']
+        'console_scripts': ['redrum = redrum.redrum:main']
     },
     install_requires=[
         "PyYAML",

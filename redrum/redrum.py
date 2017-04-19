@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 ## Evan Widloski - 2016-12-03
-## Imgurt - Imgur wallpaper ranker and changer
+## redrum - Reddit wallpaper ranker and changer
 ## Uses logistic function to choose wallpaper based
 ##   on number of views, resolution and aspect ratio
 
 import sys
 
 if sys.version_info[0] < 3:
-    sys.exit("Imgurt must be run in python3 (or installed through pip3.)")
+    sys.exit("redrum must be run in python3 (or installed through pip3.)")
 
 import requests
 from requests.exceptions import ConnectionError
@@ -29,18 +29,18 @@ logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 # attempt to load settings from file
-config_file = os.path.expanduser('~/.config/imgurt.ini')
+config_file = os.path.expanduser('~/.config/redrum.ini')
 
 if not os.path.exists(config_file):
     os.makedirs(os.path.dirname(config_file), exist_ok=True)
     logging.info("No config found at {0}.  Creating...".format(config_file))
-    shutil.copyfile(module_path + '/imgurt.ini', config_file)
-    logging.info("Update config with your preferred options and run imgurt again.")
+    shutil.copyfile(module_path + '/redrum.ini', config_file)
+    logging.info("Update config with your preferred options and run redrum again.")
     sys.exit()
 
 parser = SafeConfigParser()
 parser.read(config_file)
-config = parser['imgurt']
+config = parser['redrum']
 
 screen_width = config.getint('screen_width', 1600)
 screen_height = config.getint('screen_height', 900)
@@ -68,9 +68,9 @@ client_id = config.get('client_id', "5f21952153b5f6c")
 headers = {"Authorization": "Client-ID {0}".format(client_id)}
 
 # where to store scored image metadata
-cache_file = os.path.expanduser(config.get('cache_file', '~/.cache/imgurt_cache.json'))
+cache_file = os.path.expanduser(config.get('cache_file', '~/.cache/redrum_cache.json'))
 # where to store current_image
-image_file = os.path.expanduser(config.get('image_file', '~/.cache/imgurt_image'))
+image_file = os.path.expanduser(config.get('image_file', '~/.cache/redrum_image'))
 # how to set the background
 wallpaper_command = config.get('wallpaper_command', 'feh --bg-scale {image_file}')
 # set cache to expire after 1 week
@@ -111,7 +111,7 @@ def score_image(image, max_views):
 
     final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
 
-    # `imgurt.py` only uses final_score, but `tune.py` also uses this function and needs the rest
+    # `redrum.py` only uses final_score, but `tune.py` also uses this function and needs the rest
     return [final_score,
             ratio_score,
             views_score,
@@ -190,7 +190,7 @@ def get_images(subreddits):
     for image in images:
 
         # Calculate final image score from presets.
-        image['imgurt_score'] = score_image(image, max_views)[0]
+        image['redrum_score'] = score_image(image, max_views)[0]
 
     return images
 
@@ -205,18 +205,18 @@ def weighted_select(images, seen):
         logging.info("No images available.  Set `unseen_only` to False, increase `max_pages` or add more subreddits")
         sys.exit()
 
-    total_imgurt_score = sum([image['imgurt_score'] for image in images])
-    rand_score = random.uniform(0, total_imgurt_score)
+    total_redrum_score = sum([image['redrum_score'] for image in images])
+    rand_score = random.uniform(0, total_redrum_score)
     for image in images:
-        rand_score -= image['imgurt_score']
+        rand_score -= image['redrum_score']
         if rand_score <= 0:
             break
 
     logging.info("Selected {0} ({1}) with score {2} out of {3} images".format(image['link'],
                                                                               image['section'],
-                                                                              image['imgurt_score'],
+                                                                              image['redrum_score'],
                                                                               len(images)))
-    logging.info("The probability of selecting this image was {0}".format(image['imgurt_score']/total_imgurt_score))
+    logging.info("The probability of selecting this image was {0}".format(image['redrum_score']/total_redrum_score))
 
     # set selected image as seen
     image['seen'] = True

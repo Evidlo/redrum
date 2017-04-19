@@ -1,5 +1,5 @@
 [Unit]
-Description=Run imgurt.service periodically
+Description=Run redrum.service periodically
 
 [Timer]
 OnCalendar=*-*-* 00/2:00:00

@@ -1,5 +1,5 @@
 #!/bin/env python3
-## Evan Widloski - Tuning Script for Imgurt
+## Evan Widloski - Tuning Script for redrum
 ## Check scores for images of various ratios, resolutions, views
 ## Shows individual scores before and after logistic discrimination
 
@@ -8,10 +8,10 @@
 ##   but a good image has a ratio score of .8, consider setting
 ##   ratio_cutoff to something between these two numbers.
 
-from imgurt import *
+from redrum import *
 
 # put some images of varying quality here to see their score before and after logistic function
-# these images must be selected from imgurt_cache
+# these images must be selected from redrum_cache
 links = ['D331RXf', # bad aspect ratio and resolution, high views
          'P7I7bML', # good aspect ratio and resolution
          'GW2i3K4', # good ratio and resolution, low views
