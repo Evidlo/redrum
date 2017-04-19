@@ -16,7 +16,7 @@ from requests.exceptions import ConnectionError
 import logging
 import random, math
 import os, shutil
-from subprocess import Popen, PIPE
+import subprocess
 import json
 from datetime import datetime, timedelta
 from configparser import SafeConfigParser
@@ -218,18 +218,15 @@ def weighted_select(images, seen):
                                                                               len(images)))
     logging.info("The probability of selecting this image was {0}".format(image['redrum_score']/total_redrum_score))
 
-    # set selected image as seen
-    image['seen'] = True
-
     return image
 
 
-# set wallpaper with feh
+# set wallpaper
 def set_wallpaper(image):
 
     logging.info("Applying wallpaper")
 
-    # download image and send to feh stdin
+    # download image to `image_file`
     try:
         response = requests.get(image['link'])
         if response.status_code == 200:
@@ -239,10 +236,13 @@ def set_wallpaper(image):
             logging.error("Got response {} when downloading image.".format(reponse.status_code))
     except ConnectionError:
         logging.error("Connection error")
-        quit()
+        sys.exit()
 
-    p = Popen(wallpaper_command.format(image_file=image_file), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-    logger.debug("wallpaper_command response: {0}".format(p.communicate(input=(response.content))))
+    try:
+        subprocess.check_output(wallpaper_command.format(image_file=image_file), shell=True)
+    except subprocess.CalledProcessError as e:
+        logger.error("Command `{}` failed with status {}".format(e.cmd, e.returncode))
+        sys.exit()
 
 
 # save date, options, seen images and images to cache
@@ -253,9 +253,9 @@ def save(images, date, seen, options):
         os.makedirs(os.path.dirname(cache_file), exist_ok=True)
     with open(cache_file, 'w') as cache:
         cache.write(json.dumps({'date': date,
-                            'options': options,
-                            'seen':seen,
-                            'images': images}, indent=4))
+                                'options': options,
+                                'seen':seen,
+                                'images': images}, indent=4))
 
 def main():
     # attempt to load scored images from cache
