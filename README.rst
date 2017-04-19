@@ -18,10 +18,6 @@ Installation
   
 2. Install systemd user unit (optional)
 
-   * edit `systemd/redrum.service` to point to `redrum.py`
-
-   * copy unit files
-
    .. code:: bash
 
       # copy service files
@@ -33,11 +29,14 @@ Installation
 
       # the service can be triggered manually as well
       systemctl --user start redrum
+
+
+   note: If using a python3 virtualenv, change ``ExecStart`` in ``redrum.service`` to ``/path/to/venv/bin/redrum``
   
 Usage
 -----
 
-If redrum can't find a config file, it will create one in `~/.config/redrum.ini` automatically.  You should update this file with your screen resolution and preferred subreddits, then run redrum again.
+If redrum can't find a config file, it will create one in ``~/.config/redrum.ini`` automatically.  You should update this file with your screen resolution and preferred subreddits, then run redrum again.
 
 .. code:: bash
 
