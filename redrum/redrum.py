@@ -50,9 +50,9 @@ subreddits = config.get('subreddits').split('\n')
 sfw_only = config.getboolean('sfw_only', True)
 unseen_only = config.getboolean('unseen_only', True)
 
-ratio_cutoff = config.getfloat('ratio_cutoff', .95)
-views_cutoff = config.getfloat('views_cutoff', .75)
-pixel_cutoff = config.getfloat('pixel_cutoff', 1)
+ratio_midpoint = config.getfloat('ratio_midpoint', .95)
+views_midpoint = config.getfloat('views_midpoint', .75)
+pixel_midpoint = config.getfloat('pixel_midpoint', 1)
 
 ratio_k = config.getfloat('ratio_k', 15)
 views_k = config.getfloat('views_k', 15)
@@ -78,8 +78,8 @@ cache_expiry = timedelta(days=7)
 # use ctime format for storing cache date
 date_format = "%a %b %d %H:%M:%S %Y"
 # update cache when these options change
-options = [sfw_only, subreddits, screen_width, screen_height, ratio_cutoff,
-           views_cutoff, pixel_cutoff, ratio_k, views_k, pixel_k, max_pages, url]
+options = [sfw_only, subreddits, screen_width, screen_height, ratio_midpoint,
+           views_midpoint, pixel_midpoint, ratio_k, views_k, pixel_k, max_pages, url]
 
 # calculate a score for an image
 def score_image(image, max_views):
@@ -105,9 +105,9 @@ def score_image(image, max_views):
     pixel_score = width_score * height_score
 
     # run the scores through logistic function
-    ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
-    views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
-    pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
+    ratio_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -ratio_k * (ratio_score - ratio_midpoint)))) / math.e
+    views_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -views_k * (views_score - views_midpoint)))) / math.e
+    pixel_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -pixel_k * (pixel_score - pixel_midpoint)))) / math.e
 
     final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
 
