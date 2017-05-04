@@ -7,9 +7,6 @@ Redrum is a Reddit wallpaper downloader which scores wallpapers and selects the 
 
 Install the systemd units to run the script every two hours.
 
-.. math::
-   
-   3x + 3 \int_0^a dx
 
 Installation
 ------------
