@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='redrum',
-    version='1.4.5',
+    version='1.4.8',
     packages=['redrum'],
     package_data={'redrum': ['redrum.ini']},
     author="Evan Widloski",

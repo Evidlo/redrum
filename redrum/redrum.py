@@ -81,6 +81,9 @@ date_format = "%a %b %d %H:%M:%S %Y"
 options = [sfw_only, subreddits, screen_width, screen_height, ratio_midpoint,
            views_midpoint, pixel_midpoint, ratio_k, views_k, pixel_k, max_pages, url]
 
+def logistic_function(x, midpoint, k):
+    return 1 / (1 + pow(math.e, -k * (x - midpoint)))
+
 # calculate a score for an image
 def score_image(image, max_views):
     # score image ratio match from 0-1
@@ -105,9 +108,9 @@ def score_image(image, max_views):
     pixel_score = width_score * height_score
 
     # run the scores through logistic function
-    ratio_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -ratio_k * (ratio_score - ratio_midpoint)))) / math.e
-    views_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -views_k * (views_score - views_midpoint)))) / math.e
-    pixel_logistic_score = pow(math.e, 1 / (1 + pow(math.e, -pixel_k * (pixel_score - pixel_midpoint)))) / math.e
+    ratio_logistic_score = logistic_function(ratio_score, ratio_midpoint, ratio_k)
+    views_logistic_score = logistic_function(views_score, views_midpoint, views_k)
+    pixel_logistic_score = logistic_function(pixel_score, pixel_midpoint, pixel_k)
 
     final_score = ratio_logistic_score * views_logistic_score * pixel_logistic_score
 

@@ -17,9 +17,6 @@ fig, ax = plt.subplots(figsize=(15,5))
 plt.subplots_adjust(left=0.05, bottom=0.3, right=.95)
 
 x = np.arange( 0, 1, 0.001)
-def logistic_function(x, midpoint, k):
-    return pow(math.e, 1 / (1 + pow(math.e, -k * (x - midpoint)))) / math.e
-
 
 
 #-------------- Inputs -----------------
@@ -96,16 +93,16 @@ if not image_b:
 #-------------- Make plots interactive -----------------
 
 # update plots and scores when sliders are adjusted
-def update(*args):
+def update(*_):
     redrum.ratio_midpoint = slide_ratio_midpoint.val
     redrum.ratio_k = slide_ratio_k.val
     redrum.pixel_midpoint = slide_pixel_midpoint.val
     redrum.pixel_k = slide_pixel_k.val
     redrum.views_midpoint = slide_views_midpoint.val
     redrum.views_k = slide_views_k.val
-    plot_ratio.set_ydata(logistic_function(x, slide_ratio_midpoint.val, slide_ratio_k.val))
-    plot_pixel.set_ydata(logistic_function(x, slide_pixel_midpoint.val, slide_pixel_k.val))
-    plot_views.set_ydata(logistic_function(x, slide_views_midpoint.val, slide_views_k.val))
+    plot_ratio.set_ydata(redrum.logistic_function(x, slide_ratio_midpoint.val, slide_ratio_k.val))
+    plot_pixel.set_ydata(redrum.logistic_function(x, slide_pixel_midpoint.val, slide_pixel_k.val))
+    plot_views.set_ydata(redrum.logistic_function(x, slide_views_midpoint.val, slide_views_k.val))
     [final_score_a,
      ratio_score_a,
      views_score_a,
@@ -142,7 +139,6 @@ def update(*args):
     final_score_b_text.set_text('{} score = {:.2e}'.format(args.ids[1], final_score_b))
     final_score_ratio_text.set_text('rel. prob. = {:.2e}'.format(final_score_a / final_score_b))
     fig.canvas.draw_idle()
-    print(ratio_logistic_score_a / ratio_logistic_score_b)
 
 slide_ratio_midpoint.on_changed(update)
 slide_ratio_k.on_changed(update)
