@@ -89,7 +89,7 @@ Images are scored in three steps as follows:
    
    ``pixel_score``, ``ratio_score``, and ``views_score`` each have their own ``midpoint`` and ``k``, which can be set in ``~/.config/redrum.ini``
 
-   _`logistic function`: https://en.wikipedia.org/wiki/Logistic_function
+   .. _logistic function: https://en.wikipedia.org/wiki/Logistic_function
    
 3. The three logistic scores are then multiplied to calculate an image's ``final_score``.  This score is used to do a random weighted select of all images in the cache.  An image with a ``final_score`` that is twice the score of another image is twice as likely to be selected during the random selection.
 
