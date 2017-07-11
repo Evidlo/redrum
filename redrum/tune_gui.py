@@ -1,6 +1,6 @@
 #!/bin/python
 # Evan Widloski - 2016-10-13
-# Visually demonstrate f(z) = e^z
+# Graphical interface for finding midpoint and k
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons

@@ -95,7 +95,7 @@ Images are scored in three steps as follows:
 
 Tuning the scoring algorithm
 ----------------------------
-You can easily adjust the scoring algorithm if you aren't satisfied with the images being selected.  ``redrum/tune.py`` allows you to quickly adjust the ``midpoint`` and ``k`` of the logarithmic function and view its effects on the ``final_score``.
+You can adjust the scoring algorithm if you aren't satisfied with the images being selected.  ``redrum/tune_gui.py`` allows you to quickly adjust the ``midpoint`` and ``k`` of the logarithmic function and view its effects on the ``final_score``.
 
 
   
