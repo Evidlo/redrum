@@ -84,7 +84,7 @@ def get_images(config):
         # keep getting results on each subreddit album until there are none left
         page_num = 0
         while page_num < config.max_pages:
-            page_url = url.format(subreddit, page_num)
+            page_url = config.url.format(subreddit, page_num)
             print("Indexing page #{0} from subreddit {1}\r".format(page_num, subreddit), end="")
             response = requests.get(page_url, headers=config.headers).json()
 
@@ -115,7 +115,7 @@ def get_images(config):
         if result['is_album']:
             album_id = result['id']
             logging.debug("Unpacking album {0}".format(album_id))
-            response = requests.get(album_url.format(album_id), headers=config.headers).json()
+            response = requests.get(config.album_url.format(album_id), headers=config.headers).json()
             album_results = response['data']
 
             for image in album_results['images']:
@@ -264,8 +264,13 @@ def main():
     parser.add_argument('--refresh', action='store_true', default=False, help="force a cache refresh")
     parser.add_argument('--noset', action='store_true', default=False, help="don't select and set and set wallpaper")
     parser.add_argument('--config', action='store_true', default=os.path.expanduser('~/.config/redrum.ini'), help="use a different config path")
+    parser.add_argument('--debug', action='store_true', default=False, help="enable debug messages")
 
     args = parser.parse_args()
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logger.debug('Debugging enabled...')
 
     config = Config(args.config)
 
