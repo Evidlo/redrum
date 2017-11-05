@@ -73,7 +73,7 @@ Images are scored in three steps as follows:
                          
       views_score = [# views of this image] / [highest # views of all images]
    
-2. Each input score is run through a sigmoid function, in this case, the `logistic function`_.  This helps to provide stronger differentiation between a good and a bad image than could be afforded with a linear method.  The logistic function is defined by its ``midpoint`` (x0) and the slope at the midpoint, ``k``. 
+2. Each input score is run through a sigmoid function, in this case, the `logistic function`_.  This helps to provide stronger differentiation between a good and a bad image than could be afforded with a linear method.  The logistic function is defined by its ``midpoint`` and the slope at the midpoint, ``k``. 
 
    .. image:: https://wikimedia.org/api/rest_v1/media/math/render/svg/2770ecdecd1a6d2375d17f73013905cea5fb2668
    .. figure:: https://upload.wikimedia.org/wikipedia/commons/8/88/Logistic-curve.svg
@@ -81,11 +81,13 @@ Images are scored in three steps as follows:
    
       Logistic function with ``midpoint=0``, ``k=1``
 
+
+      In `redrum` the logistic function has been normalized such that f(0) = 1.
    .. math::
 
-      ratio_logistic_score = 1/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
-      views_logistic_score = 1/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
-      pixel_logistic_score = 1/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
+      ratio_logistic_score = (1 + pow(math.e, -ratio_k * (1 - ratio_off)))/(1 + pow(math.e, -ratio_k * (ratio_score - ratio_cutoff)))
+      views_logistic_score = (1 + pow(math.e, -ratio_k * (1 - ratio_off)))/(1 + pow(math.e, -views_k * (views_score - views_cutoff)))
+      pixel_logistic_score = (1 + pow(math.e, -ratio_k * (1 - ratio_off)))/(1 + pow(math.e, -pixel_k * (pixel_score - pixel_cutoff)))
    
    ``pixel_score``, ``ratio_score``, and ``views_score`` each have their own ``midpoint`` and ``k``, which can be set in ``~/.config/redrum.ini``
 
