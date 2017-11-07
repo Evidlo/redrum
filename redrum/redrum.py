@@ -74,7 +74,6 @@ def score_image(config, image, max_views):
             views_logistic_score,
             pixel_logistic_score]
 
-
 # get list of image and album metadata from each subreddit
 def get_images(config):
 
@@ -85,7 +84,7 @@ def get_images(config):
         page_num = 0
         while page_num < config.max_pages:
             page_url = config.url.format(subreddit, page_num)
-            print("Indexing page #{0} from subreddit {1}\r".format(page_num, subreddit), end="")
+            print("Indexing page {0} from subreddit {1}\r".format(', '.join(map(str, range(page_num + 1))), subreddit), end="")
             response = requests.get(page_url, headers=config.headers).json()
 
             if response['success'] == True:
@@ -106,31 +105,36 @@ def get_images(config):
         print()
 
     # clean list of images and albums
+    def check_results(results, in_album = False):
+        for result in results:
+            logger.debug(result)
+            # if result is an album, append its images to `images`
+            if not in_album and result['is_album']:
+                album_id = result['id']
+                logging.debug("Unpacking album {0}".format(album_id))
+                response = requests.get(config.album_url.format(album_id), headers=config.headers).json()
+                if response['success'] == True:
+                    album_results = response['data']
+                    check_results(album_results['images'], in_album = True)
+                else:
+                    logging.error("Received error from Imgur: {0}".format(response['data']['error']))
+
+            # remove zero pixel (deleted) images
+            elif (result['width'] == 0 or result['height'] == 0):
+                continue
+
+            # remove NSFW
+            elif config.sfw_only and result['nsfw'] == True:
+                continue
+
+            # else, append image
+            else:
+                images.append(result)
 
     # build list of images, replacing albums with images they contain
-    print("Unpacking albums")
+    print("Filtering results...")
     images = []
-    for result in results:
-        # if result is an album, append its images to `images`
-        if result['is_album']:
-            album_id = result['id']
-            logging.debug("Unpacking album {0}".format(album_id))
-            response = requests.get(config.album_url.format(album_id), headers=config.headers).json()
-            album_results = response['data']
-
-            for image in album_results['images']:
-                images.append(image)
-
-        # else, append image
-        else:
-            images.append(result)
-
-    # remove zero pixel (deleted) images
-    images = [image for image in images if (image['width'] > 0 and image['height'] > 0)]
-
-    # remove NSFW
-    if config.sfw_only:
-        images = [image for image in images if image['nsfw'] == False]
+    check_results(results)
 
     # make sure we actually got results
     if len(images) == 0:

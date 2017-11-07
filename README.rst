@@ -16,8 +16,10 @@ Installation
    .. code:: bash
 
       pip3 install redrum
+
+2. Edit ``~/.config/redrum.ini`` with your preferred options.
   
-2. Install systemd user unit (optional)
+3. Install service for automatic wallpaper changing (optional)
 
    .. code:: bash
 
@@ -97,7 +99,7 @@ Images are scored in three steps as follows:
 
 Tuning the scoring algorithm
 ----------------------------
-You can adjust the scoring algorithm if you aren't satisfied with the images being selected.  ``redrum/tune_gui.py`` allows you to quickly adjust the ``midpoint`` and ``k`` of the logarithmic function and view its effects on the ``final_score``.
+You can adjust the scoring algorithm if you aren't satisfied with the images being selected.  ``redrum_tune`` allows you to quickly adjust the ``midpoint`` and ``k`` of the logarithmic function and view its effects on the ``final_score``.  You need to run ``pip install redrum[tune]`` to install the extra dependencies (matplotlib, numpy).
 
 
   
