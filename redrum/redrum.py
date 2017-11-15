@@ -24,12 +24,11 @@ from .version import __version__
 from datetime import datetime, timedelta
 from configparser import SafeConfigParser
 
-module_path = os.path.dirname(os.path.realpath(__file__))
-
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 # hide annoying requests messages
 logging.getLogger("requests").setLevel(logging.WARNING)
+
 
 
 def logistic_function(x, midpoint, k):
@@ -217,11 +216,22 @@ def save(config, images, date, seen):
 
 
 class Config(object):
-    def __init__(self, config):
+    def __init__(self, config_path):
+        config_path = os.path.expanduser(config_path)
+
         # attempt to load settings from file
+        if not os.path.exists(config_path):
+            logging.info("No config found at {0}.  Creating...".format(config_path))
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            module_path = os.path.dirname(os.path.realpath(__file__))
+            shutil.copyfile(module_path + '/redrum.ini', config_path)
+            logging.info("Update config with your preferred options and run redrum again.")
+            sys.exit()
+
         config_parser = SafeConfigParser()
-        config_parser.read(config)
+        config_parser.read(config_path)
         config = config_parser['redrum']
+
         self.screen_width = config.getint('screen_width', 1600)
         self.screen_height = config.getint('screen_height', 900)
         self.screen_ratio = float(self.screen_width)/self.screen_height
@@ -267,7 +277,7 @@ def main():
     parser.add_argument('-v', '--version', action='version', version=__version__, help="show version information")
     parser.add_argument('--refresh', action='store_true', default=False, help="force a cache refresh")
     parser.add_argument('--noset', action='store_true', default=False, help="don't select and set and set wallpaper")
-    parser.add_argument('--config', action='store_true', default=os.path.expanduser('~/.config/redrum.ini'), help="use a different config path")
+    parser.add_argument('--config', action='store_true', default='~/.config/redrum.ini', help="use a different config path")
     parser.add_argument('--debug', action='store_true', default=False, help="enable debug messages")
 
     args = parser.parse_args()

@@ -1,8 +1,12 @@
 from setuptools import setup
 from redrum import version
 import os
+import shutil
 
+module_path = os.path.dirname(os.path.realpath(__file__)) + '/redrum'
 config_file = os.path.expanduser('~/.config/redrum.ini')
+shutil.copyfile(module_path + '/redrum.ini', config_file)
+
 
 setup(
     name='redrum',
@@ -22,7 +26,6 @@ setup(
         ]
     },
     install_requires=[
-        "PyYAML",
         "requests",
         "configparser"
     ],
