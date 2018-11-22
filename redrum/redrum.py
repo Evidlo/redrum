@@ -87,6 +87,9 @@ def get_images(config):
             response = requests.get(page_url, headers=config.headers).json()
 
             if response['success'] == True:
+                # tag all images with their subreddit
+                for result in response['data']:
+                    result['subreddit'] = subreddit
                 page_results = response['data']
                 page_num += 1
 
@@ -104,7 +107,7 @@ def get_images(config):
         print()
 
     # clean list of images and albums
-    def check_results(results, in_album = False):
+    def check_results(results, in_album=False):
         for result in results:
             logger.debug(result)
             # if result is an album, append its images to `images`
@@ -170,9 +173,9 @@ def weighted_select(config, images, seen):
             break
 
     print("Selected {0} ({1}) with score {2} out of {3} images".format(image['link'],
-                                                                              image['section'],
-                                                                              image['redrum_score'],
-                                                                              len(images)))
+                                                                       image['subreddit'],
+                                                                       image['redrum_score'],
+                                                                       len(images)))
     print("The probability of selecting this image was {0}".format(image['redrum_score']/total_redrum_score))
 
     return image
