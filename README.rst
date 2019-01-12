@@ -17,9 +17,7 @@ Installation
 
       pip3 install redrum
 
-2. Edit ``~/.config/redrum.ini`` with your preferred options.
-  
-3. Install service for automatic wallpaper changing (optional)
+2. (optional) Install service for automatic wallpaper changing
 
    .. code:: bash
 
@@ -39,23 +37,19 @@ Installation
 Usage
 -----
 
-If redrum can't find a config file, it will create one in ``~/.config/redrum.ini`` automatically.  You should update this file with your screen resolution and preferred subreddits, then run redrum again.
+Redrum creates a config at ``~/.config/redrum.ini`` automatically.  You should update this file with your screen resolution and preferred subreddits before executing.
 
-.. code:: bash
+   .. code:: text
 
-   >>> redrum
-   No config found at /home/evan/.config/redrum.ini.  Creating...
-   Update config with your preferred options and run redrum again.
-
-   >>> redrum
-   No previous score cache found at /home/evan/.cache/redrum_cache.json.
-   Indexing page #0 from subreddit winterporn
-   Indexing page #1 from subreddit winterporn
-   Indexing page #2 from subreddit winterporn
-   ...
-   Selected http://i.imgur.com/3UWbcYG.jpg (EarthPorn) with score 5.21729920261845e-05 out of 5971 images
-   The probability of selecting this image was 0.009851421028579594
-   Applying wallpaper
+      >>> redrum
+      No previous score cache found at /home/evan/.cache/redrum_cache.json.
+      Indexing page #0 from subreddit winterporn
+      Indexing page #1 from subreddit winterporn
+      Indexing page #2 from subreddit winterporn
+      ...
+      Selected http://i.imgur.com/3UWbcYG.jpg (EarthPorn) with score 5.21729920261845e-05 out of 5971 images
+      The probability of selecting this image was 0.009851421028579594
+      Applying wallpaper
 
 Scoring algorithm
 -----------------

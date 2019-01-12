@@ -293,7 +293,7 @@ def main():
 
     # attempt to load scored images from cache
     if not os.path.exists(config.cache_file):
-        print("No previous score cache found at {0}.".format(config.cache_file))
+        print("No previous score cache found at {0}.  This may take a minute...".format(config.cache_file))
         date = datetime.strftime(datetime.now(), config.date_format)
         images = get_images(config)
         seen = []
