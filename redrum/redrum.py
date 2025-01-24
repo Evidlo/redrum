@@ -172,10 +172,12 @@ def weighted_select(config, images, seen):
         if rand_score <= 0:
             break
 
-    print("Selected {0} ({1}) with score {2} out of {3} images".format(image['link'],
-                                                                       image['subreddit'],
-                                                                       image['redrum_score'],
-                                                                       len(images)))
+    print("Selected {0} ({1}) with score {2} out of {3} images".format(
+        image['link'],
+        image.get('subreddit', None), # FIXME: some images have no subreddit attr?
+        image['redrum_score'],
+        len(images)
+    ))
     print("The probability of selecting this image was {0}".format(image['redrum_score']/total_redrum_score))
 
     return image
