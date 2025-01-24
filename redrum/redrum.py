@@ -108,7 +108,7 @@ def get_images(config):
 
     # clean list of images and albums
     def check_results(results, in_album=False):
-        for result in results:
+        for result in results or []:
             logger.debug(result)
             # if result is an album, append its images to `images`
             if not in_album and result['is_album']:
@@ -190,12 +190,12 @@ def set_wallpaper(config, image):
 
     # download image to `image`
     try:
-        response = requests.get(image['link'])
+        response = requests.get(image['link'], headers=config.headers)
         if response.status_code == 200:
             with open(config.image_file, 'wb') as f:
                 f.write(response.content)
         else:
-            logging.error("Got response {} when downloading image.".format(reponse.status_code))
+            logging.error("Got response {} when downloading image.".format(response.status_code))
     except ConnectionError:
         logging.error("Connection error")
         sys.exit()
@@ -259,7 +259,10 @@ class Config(object):
 
         # imgur downloading
         self.client_id = config.get('client_id', "5f21952153b5f6c")
-        self.headers = {"Authorization": "Client-ID {0}".format(self.client_id)}
+        self.headers = {
+            "Authorization": "Client-ID {0}".format(self.client_id),
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:21.0) Gecko/20100101 Firefox/21.0"
+        }
 
         # where to store scored image metadata
         self.cache_file = os.path.expanduser(config.get('cache_file', '~/.cache/redrum_cache.json'))
