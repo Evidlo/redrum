@@ -16,6 +16,7 @@ setup(
     author_email="evan@evanw.org",
     description="uses math to select wallpapers from Reddit",
     long_description=open('README.rst').read(),
+    long_description_content_type='text/x-rst',
     license="MIT",
     keywords="Reddit wallpaper changer",
     url="https://github.com/evidlo/redrum",
